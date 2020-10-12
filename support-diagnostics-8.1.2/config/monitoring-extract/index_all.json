@@ -1,0 +1,31 @@
+{
+  "size": {{size}},
+  "query":{
+    "bool": {
+      "filter": [
+        {"term": {"type": "index_stats"} },
+        {"term": { "cluster_uuid" : "{{clusterId}}"} },
+        { "range":
+          { "timestamp":
+            {
+              "gte": "{{start}}",
+              "lte": "{{stop}}"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sort": [
+  {
+    "index_stats.index": {
+      "order": "asc"
+    }
+  },
+  {
+    "timestamp": {
+      "order": "asc"
+      }
+  }
+  ]
+}

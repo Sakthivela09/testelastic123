@@ -1,0 +1,197 @@
+#
+#
+#
+#
+#  The REST call settings have been moved to elastic-rest.yml and logstash-rest.yml
+#
+#
+#
+#
+
+## Should only need to change these if Github modifies something
+  ## github-settings:
+  ##   diagReleaseHost: "api.github.com"
+  ##   diagReleaseDest: "/repos/elastic/support-diagnostics/releases/latest"
+  ##   diagReleaseScheme: "https"
+  ## diagLatestRelease: "https://api.github.com/repos/elastic/support-diagnostics/releases/latest"
+
+# Maximum number of log files including zip archives
+log-settings:
+  maxLogs: 3
+  maxGcLogs: 3
+
+# Uncomment only if modifying defaults
+rest-config:
+   # timeouts in seconds
+   requestTimeout: 60
+   connectTimeout: 60
+   socketTimeout:  120
+   maxTotalConn: 100
+   maxConnPerRoute: 10
+
+# Number of tiems to re-attempt a rest call
+call-retries: 3
+
+# Time before re-attempts in milliseconnds
+pause-retries: 5000
+
+thread-dump:
+  jstack: "jstack {{PID}}"
+
+linuxOS:
+  sys:
+    top: "top -b -n1"
+    netstat: "netstat -an"
+    ss: "ss -an"
+    process-list: "ps -ef"
+    top_threads: "top -b -n1 -H"
+    uname: "uname -a -r"
+    cpu: "cat /proc/cpuinfo"
+    iostat: "iostat -c -d -x -t -m 1 5"
+    sar: "sar -A"
+    sysctl: "sysctl -a"
+    dmesg: "dmesg"
+    huge_pages: "cat /sys/kernel/mm/transparent_hugepage/enabled"
+    cpu_governor: "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
+    limits: "cat /etc/security/limits.conf"
+    proc-limit: "cat /proc/{{PID}}/limits"
+
+  java:
+    elastic-java: "ps -fp {{PID}} | awk '{ if (NR!=1) print $8}'"
+    jps: "{{JAVA_HOME}}/bin/jps -l -m -v"
+    jstack: "{{JAVA_HOME}}/bin/jstack {{PID}}"
+    javac: "{{JAVA_HOME}}/bin/javac -version"
+
+  logs:
+    elastic: "ls -alt {{LOGPATH}} | grep '{{CLUSTERNAME}}.log' | awk '{print $9}'"
+    elastic-arc: "ls -alt {{LOGPATH}} | grep '{{CLUSTERNAME}}-.*-1.log.gz' | awk '{print $9}'"
+    gc: "ls -alt {{LOGPATH}} |  awk '/gc/ {print $9}'"
+
+macOS:
+  sys:
+    top: "top -l 1"
+    netstat: "netstat -an"
+    process-list: "ps -ef"
+    ulimit: "ulimit -a"
+
+  java:
+    elastic-java: "ps -fp {{PID}} | awk '{ if (NR!=1) print $8}'"
+    jps: "{{JAVA_HOME}}/bin/jps -l -m -v"
+    jstack: "{{JAVA_HOME}}/bin/jstack {{PID}}"
+    javac: "{{JAVA_HOME}}/bin/javac -version"
+
+  logs:
+    elastic: "ls -alt {{LOGPATH}} | grep '{{CLUSTERNAME}}.log' | awk '{print $9}'"
+    elastic-arc: "ls -alt {{LOGPATH}} | grep '{{CLUSTERNAME}}-.*-1.log.gz' | awk '{print $9}'"
+    gc: "ls -alt {{LOGPATH}} |  awk '/gc/ {print $9}'"
+
+winOS:
+  sys:
+    process-list: "tasklist /v"
+    netstat: "netstat -ano"
+    cpu: "wmic CPU"
+
+  java:
+    elastic-java: "wmic process where processId={{PID}} GET CommandLine"
+    jps: "{{JAVA_HOME}}\\bin\\jps -l -m -v"
+    jstack: "{{JAVA_HOME}}\\bin\\jstack {{PID}}"
+    javac: "{{JAVA_HOME}}\\bin\\javac -version"
+
+  logs:
+    elastic: "dir /b  /l /o:-d /a:-d {{LOGPATH}}\\{{CLUSTERNAME}}.log"
+    elastic-arc: "dir /b  /l /o:-d /a:-d {{LOGPATH}}\\{{CLUSTERNAME}}-*.log.gz"
+    gc: "dir /l /b /o:-d /a:-d {{LOGPATH}}\\gc.log.*"
+
+docker-container-ids: "{{dockerPath}} ps -q"
+
+docker-global:
+  docker-info: "bash -c '{{dockerPath}} info'"
+  docker-ps-all: "bash -c '{{dockerPath}} ps -a --no-trunc'"
+
+docker-container:
+  docker-logs: "{{dockerPath}} logs {{CONTAINER_ID}}"
+  docker-top: "{{dockerPath}} top {{CONTAINER_ID}}"
+  docker-inspect: "{{dockerPath}} inspect {{CONTAINER_ID}}"
+
+monitoring-scroll-size: 1000
+bulk-import-size: 500
+
+import-templates:
+  - "monitoring-es-diag"
+  - "monitoring-logstash-diag"
+  - "metricbeat-system-diag"
+
+monitoring-extract-pattern: ".monitoring-es-7-diag-import"
+logstash-extract-pattern: ".monitoring-logstash-7-diag-import"
+metricbeat-extract-pattern: "metricbeat-7-diag-import"
+
+query-files:
+  - general
+  - index_stats
+  - index_all
+  - cluster_id_check
+  - cluster_ids
+  - metricbeat
+
+monitor-sets:
+  - cluster_state
+  - cluster_stats
+  - node_stats
+  - indices_stats
+  - index_stats
+  - shards
+  - job_stats
+  - ccr_stats
+  - ccr_auto_follow_stats
+
+logstash-sets:
+  - logstash_stats
+  - logstash_state
+
+metric-sets:
+  - cpu
+  - load
+  - memory
+  #- network
+  #- process
+  #- process_summary
+  #- socket_summary
+  #- entropy
+  - core
+  - diskio
+  #- socket
+  #- service
+  #- users
+
+flight-recorder-es:
+  complete:
+    - allocation
+    - allocation_explain
+    - allocation_explain_disk
+    - cluster_settings
+    - cluster_settings_defaults
+    - cluster_stats
+    - fielddata
+    - fielddata_stats
+    - indices
+    - indices_stats
+    - licenses
+    - mapping
+    - master
+    - nodes
+    - nodes_stats
+    - nodes_usage
+    - pipelines
+    - recovery
+    - segments
+    - settings
+    - shards
+    - tasks
+    - templates
+    - ccr_stats
+    - enrich_stats
+    - ilm_status
+    - rollup_jobs
+  stability:
+    - nodes
+    - shards
